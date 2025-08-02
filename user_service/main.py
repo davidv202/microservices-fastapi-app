@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from database import Base, engine
@@ -11,7 +11,7 @@ app = FastAPI(title="User Service", version="1.0.0")
 
 Base.metadata.create_all(bind=engine)
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = HTTPBearer(auto_error=False)
 
 @app.get("/")
 def health_check():
@@ -28,15 +28,20 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     return result
 
 @app.get("/verify-token/")
-def verify_token(token: str = Depends(oauth2_scheme)):
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)):
+    token = credentials.credentials if credentials else None
     return verify_user_session(token)
 
 @app.post("/logout/")
-def logout(token: str = Depends(oauth2_scheme)):
+def logout(credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)):
+    token = credentials.credentials if credentials else None
     return logout_user(token)
 
 @app.get("/users/me/", response_model=UserResponse)
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    token = credentials.credentials if credentials else None
+    if not token:
+        raise HTTPException(status_code=401, detail="Token required")
     session_info = verify_user_session(token)
     user = get_user_info(session_info["user_id"], db)
     return user

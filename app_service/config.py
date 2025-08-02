@@ -4,6 +4,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings:
-    APP_SERVICE_URL: str = os.getenv("APP_SERVICE_URL", "http://localhost:8001")
+    USER_SERVICE_URL: str = os.getenv("USER_SERVICE_URL", "http://localhost:8002")
     
 settings = Settings()
