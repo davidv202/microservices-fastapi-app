@@ -48,6 +48,7 @@ services:
       - ./app_service/.env
     environment:
       - USER_SERVICE_URL=http://user_service:8002
+      - SCRAPER_SERVICE_URL=http://scraper_service:8003
     networks:
       - app-network
     depends_on:
@@ -63,6 +64,24 @@ services:
       - ./user_service/.env
     environment:
       - DATABASE_URL=postgresql://admin:admin@postgres:5432/user_service_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    networks:
+      - app-network
+    depends_on:
+      - postgres
+      - redis
+
+  scraper_service:
+    container_name: scraper_service
+    build:
+      context: ./scraper_service
+    ports:
+      - "8003:8003"
+    env_file:
+      - ./scraper_service/.env
+    environment:
+      - DATABASE_URL=postgresql://admin:admin@postgres:5432/scraper_service_db
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     networks:

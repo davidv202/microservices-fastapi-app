@@ -71,3 +71,24 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(o
        raise HTTPException(status_code=503, detail="App service unavailable")
     except Exception:
        raise HTTPException(status_code=500, detail="Internal server error")
+   
+# Scraper endpoints - forward to app_service
+@app.post("/scrape/")
+async def scrape_company(scrape_data: dict, credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)):
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    try:
+        token = credentials.credentials
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{settings.APP_SERVICE_URL}/scrape/", 
+                json=scrape_data,
+                headers={"Authorization": f"Bearer {token}"}
+            )
+            if response.status_code != 200:
+                raise HTTPException(status_code=response.status_code, detail=response.json().get("detail"))
+            return response.json()
+    except httpx.RequestError:
+       raise HTTPException(status_code=503, detail="App service unavailable")
+    except Exception:
+       raise HTTPException(status_code=500, detail="Internal server error")
