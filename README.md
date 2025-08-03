@@ -9,10 +9,8 @@ This is a python-based web application using FastAPI, following microservices ar
 - [Setup Instructions](#setup-instructions)
 - [Authentication FLow](#authentication-flow)
 - [Scraping Process](#scraping-process)
-- [ELT Process](#ELT-process)
-- [API Documentation](#api-documentation)
-- [Development Flow](#development-flow)
-- [Testing](#testing)
+- [ELT Process](#elt-process)
+- [Development flow steps considering a deployment from AWS](#development-flow-steps-considering-a-deployment-from-aws)
 - [TODO/Ideas](#todo-ideas)
 
 ## Service Overview
@@ -48,6 +46,8 @@ The User Service is used for user management and authentication processes. It ha
 The Scraper Service specializes in web scraping and data processing operations, specifically designed to extract company information from openmoney.md. It implements ELT (Extract, Load, Transform) pipeline that first extracts raw HTML data from target websites, loads this data into persistent storage for audit and reprocessing capabilities, and then transforms the raw data into structured, usable information.
 
 ## Architecture
+
+![Architecture Diagram](docs/images/architecture_diagram.png)
 
 ## Setup Instructions
 
@@ -212,3 +212,66 @@ Authorization: Bearer <jwt_token>
 
 - Tokens are cached in Redis
 - Automatic token expiration(30 minutes default)
+
+## Scraping Process
+
+The scraping functionality is accesible through and edpoint that extracts company data from openmoeny.md
+
+1. Request Processing
+
+```
+POST /scrape/
+{
+    "idno": "123456789123"
+    "forced_refresh": false
+}
+```
+
+2. Cache check
+
+Firstly, it checks Redis cache for existing data and then returns cached data immediately if available.
+
+3. Background Scraping
+
+If data is not cached or forced refresh it starts background scraping task.
+
+4. Web Scraping
+
+The service uses Selenium WebDriver with Chrome, navigates to https://openmoney.md/companies/{idno}. It waits for JavaScript content to load into the site(which is a SPA - Single Page Application) and then it extracts complete raw HTML.
+
+## ELT Process
+
+### Extract Phase
+
+The extraction phase uses Selenium WebDriver with Chrome to retrieve raw HTML content from openmoney.md company pages. This approach is necessary because the target website relies on JavaScript to render company information dynamically. The scraper navigates to the specific company URL using the provided IDNO, waits for the page content to fully load including JavaScript-rendered elements, and then captures the complete page source. This ensures that all dynamic content is properly extracted before proceeding to the next phase.
+
+### Load Phase
+
+During the load phase, all extracted raw HTML data is immediately stored in the source_data database table without any processing or transformation. This raw storage approach serves multiple purposes: it creates a complete audit trail of what was scraped and when and enables reprocessing of data without requiring additional web requests. The stored data includes the original URL, complete HTML content, HTTP status code, and timestamp, ensuring full traceability of the scraping operation.
+
+### Transform Phase
+
+The transformation phase processes the raw HTML stored in the database to extract company information. Using BeautifulSoup as the HTML parser, the system analyzes the complete DOM structure to identify and extract relevant data fields. Text processing includes normalization and cleaning operations to ensure data consistency, removing extra whitespace and standardizing formatting. Once the data is successfully parsed and validated, the structured information is stored in the transformed_data table.
+
+## Development flow steps considering a deployment from AWS
+
+1. Code Development & Integration
+
+```
+Developer commits code → Push to GitHub repository → CI pipeline triggered
+```
+
+When a developer pushes code changes to the main branch or creates a pull request, the automated CI/CD process begins. The GitHub repository serves as the central source of truth, and any code changes immediately trigger the continuous integration workflow.
+
+2. Continuous Integration
+
+```
+Code Push → Build Docker image → Security scanning → Vulnerability assessment → Pass/Fail gate
+```
+
+The CI workflow automatically:
+
+- Builds the gateway Docker image using the commit SHA as a unique tag
+- Runs Trivy security scanner to identify vulnerabilities in OS packages and libraries
+- Scans for CRITICAL severity issues that could compromise security
+- Fails the pipeline if critical vulnerabilities are detected, preventing unsafe code from progressing
