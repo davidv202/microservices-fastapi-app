@@ -23,14 +23,10 @@ async def scrape_company(
     db: Session = Depends(get_db),
     credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)
 ):
-    """
-    Scrape company data by IDNO
-    Authentication is handled by app_service before reaching here
-    """
+    
     if not credentials:
         raise HTTPException(status_code=401, detail="Authentication required")
     
-    # Check cache first
     cached_result = get_cached_result(request.idno)
     if cached_result and not request.force_refresh:
         return ScrapeResponse(
@@ -46,7 +42,7 @@ async def scrape_company(
         request.idno,
         db
     )
-    
+        
     return ScrapeResponse(
         success=True,
         message="Scraping started in background",

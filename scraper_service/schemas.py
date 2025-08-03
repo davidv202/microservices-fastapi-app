@@ -9,14 +9,7 @@ class ScrapeRequest(BaseModel):
 class CompanyData(BaseModel):
     idno: str
     company_name: Optional[str] = None
-    registration_date: Optional[date] = None
-    status: Optional[str] = None
     address: Optional[str] = None
-    activity_code: Optional[str] = None
-    activity_description: Optional[str] = None
-    legal_form: Optional[str] = None
-    share_capital: Optional[str] = None
-    founders: Optional[List[str]] = None
     scraped_at: datetime
 
     class Config:
