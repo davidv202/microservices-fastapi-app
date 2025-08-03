@@ -178,3 +178,37 @@ uvicorn main:app --host 0.0.0.0 --port 8003
 ## Authentication Flow
 
 ![Authentication Flow](docs/images/authentication_flow.png)
+
+1. Registration
+
+```
+POST /auth/register/
+{
+    "username": "testuser",
+    "email": "testuser@email.com",
+    "password": "password"
+}
+```
+
+2. Login
+
+```
+POST /auth/login/
+{
+  "username": "user123",
+  "password": "securepassword"
+}
+```
+
+Returns JWT token.
+
+3. Protected Requests Include token in Authorization header:
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+4. Token Validation
+
+- Tokens are cached in Redis
+- Automatic token expiration(30 minutes default)
