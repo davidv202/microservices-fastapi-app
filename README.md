@@ -69,18 +69,20 @@ cd microservices-web-app
 
 2. Create enviornment files
 
+Note: Environment files(.env) are included in .gitignore. You need to create them manually based on the templates below.
+
 ```
 # Gateway service
-cp gateway/.env
+touch gateway/.env
 
 # App service
-cp app_service/.env
+touch app_service/.env
 
 # User service
-cp user_service/.env
+touch user_service/.env
 
 # Scraper service
-cp scraper_service/.env
+touch scraper_service/.env
 ```
 
 3. Environment Variables
@@ -275,3 +277,5 @@ The CI workflow automatically:
 - Runs Trivy security scanner to identify vulnerabilities in OS packages and libraries
 - Scans for CRITICAL severity issues that could compromise security
 - Fails the pipeline if critical vulnerabilities are detected, preventing unsafe code from progressing
+
+Sensitive data from .env files, such as database passwords and other credentials, will be stored in AWS Secrets Manager and retrieved at build-time during the CD process.
