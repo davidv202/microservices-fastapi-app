@@ -11,7 +11,7 @@ This is a python-based web application using FastAPI, following microservices ar
 - [Scraping Process](#scraping-process)
 - [ELT Process](#elt-process)
 - [Development flow steps considering a deployment from AWS](#development-flow-steps-considering-a-deployment-from-aws)
-- [TODO/Ideas](#todo-ideas)
+- [TODO/Ideas](#todoideas)
 
 ## Service Overview
 
@@ -48,6 +48,8 @@ The Scraper Service specializes in web scraping and data processing operations, 
 ## Architecture
 
 ![Architecture Diagram](docs/images/architecture_diagram.png)
+
+![Swagger UI](docs/images/swagger_ui.png)
 
 ## Setup Instructions
 
@@ -280,4 +282,18 @@ The CI workflow automatically:
 
 Sensitive data from .env files, such as database passwords and other credentials, will be stored in AWS Secrets Manager and retrieved at build-time during the CD process.
 
-![CI Flow diagram](docs/images/CI_Flow_Diagram.png)
+![ci flow diagram](docs/images/ci_flow_diagram.png)
+
+## TODO/Ideas
+
+1. Role-Based Access Control
+
+Implement a role-based access control system that extends beyond the current token-based authentication. This would involve adding a roles table to the user service database, defining three primary roles: admin users who can manage other users and access all system features, standard users who can perform scraping operations and view their own data, and readonly users who can only view cached company information without initiating new scraping requests. The implementation would require modifying the user model to include role assignments, updating the JWT token generation to include role claims, and creating middleware decorators that validate user permissions before allowing access to specific endpoints. Each microservice would need to understand and enforce these role-based permissions, ensuring that sensitive operations like user management and system configuration are restricted to admin users only.
+
+2. AWS Secrets Manager Integration
+
+Transition from local .env files to AWS Secrets Manager for production-grade secret management across all microservices. This implementation would involve creating separate secret stores for each service (user_service/secrets, scraper_service/secrets, etc.) containing database URLs, Redis connection strings, JWT secret keys, and other sensitive configuration data.
+
+3. Expand current GitHub Actions workflow
+
+Expand the current GitHub Actions workflow to include all four microservices with parallel builds, testing, and multi-stage security scanning. The pipeline would build Docker images for app_service, user_service, and scraper_service alongside the existing gateway service. Each service would undergo individual integration testing with temporary database containers, and security vulnerability scanning using tools like Trivy.
