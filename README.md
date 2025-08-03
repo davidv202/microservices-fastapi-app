@@ -279,3 +279,5 @@ The CI workflow automatically:
 - Fails the pipeline if critical vulnerabilities are detected, preventing unsafe code from progressing
 
 Sensitive data from .env files, such as database passwords and other credentials, will be stored in AWS Secrets Manager and retrieved at build-time during the CD process.
+
+![CI Flow diagram](docs/images/CI_Flow_Diagram.png)
