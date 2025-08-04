@@ -67,7 +67,7 @@ async def login_user(login_data: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal server error.")
     
-@app.post("/auth/logout")
+@app.post("/auth/logout/")
 async def logout_user(credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)):
     if not credentials:
         raise HTTPException(status_code=401, detail="Token required")
