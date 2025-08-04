@@ -297,3 +297,7 @@ Transition from local .env files to AWS Secrets Manager for production-grade sec
 3. Expand current GitHub Actions workflow
 
 Expand the current GitHub Actions workflow to include all four microservices with parallel builds, testing, and multi-stage security scanning. The pipeline would build Docker images for app_service, user_service, and scraper_service alongside the existing gateway service. Each service would undergo individual integration testing with temporary database containers, and security vulnerability scanning using tools like Trivy.
+
+4. Scraper Service
+
+Expand the scraper to extract additional company information from openmoney.md beyond just company name and address. This includes implementing parsers for financial data (revenue, profit/loss, assets), registration details (registration date, legal form, authorized capital), contact information (phone numbers, email addresses, website), shareholder information, business activities, etc.
